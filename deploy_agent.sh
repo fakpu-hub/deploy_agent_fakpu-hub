@@ -8,12 +8,14 @@ check_dependencies()
     then
         echo "Error: python3 is not installed."
         exit 1
+    
     fi
 
     if ! command -v zip > /dev/null 2>&1
     then
         echo "Error: zip is not installed."
         exit 1
+    
     fi
 }
 # Function to check if the project already exists
@@ -34,12 +36,16 @@ then
     else
         echo "Please enter either y or n. Watch your letter casing: "
         checker_function
+        return
+    
     fi
 else
     # It doesn't exist
     mkdir "$PROJECT_DIR"
     echo "Project deployment successful"
+
 fi
+
 }
 
 ## Logic
@@ -47,6 +53,7 @@ fi
 create_template_roster()
 {
     read -r -p "How many students? " student_count
+    echo "$student_count students"
 
     head -n $((student_count + 1)) templates/assets.csv > "$PROJECT_DIR/Helpers/assets.csv"
     
@@ -57,12 +64,14 @@ create_template_roster()
 create_fresh_roster()
 {
     read -r -p "How many students? " student_count
+    echo "$student_count students"
 
     if [[ ! "$student_count" =~ ^[1-9][0-9]*$ ]]
     then
         echo "Invalid input. Please enter a positive whole number."
         create_fresh_roster
         return
+    
     fi
 
     names=("Alice Johnson" "Bob Smith" "Charlie Brown" "David Wilson" "Emma Davis" "Frank Miller" "Grace Wilson" "Henry Brown" "Ivy Taylor" "Jack Adams")
@@ -75,6 +84,7 @@ create_fresh_roster()
         echo "Too many students. Maximum is ${#names[@]}."
         create_fresh_roster
         return
+    
     fi
 
     for ((i=0; i<student_count; i++))
@@ -103,6 +113,7 @@ create_roster()
         echo "Please choose A or B."
         create_roster
         return
+    
     fi
     
 }
@@ -126,6 +137,7 @@ update_thresholds()
             echo "Invalid warning threshold. Enter a positive number from 1 to 100."
             update_thresholds
             return
+        
         fi
 
         if [ -z "$failure_threshold" ]
@@ -136,6 +148,7 @@ update_thresholds()
             echo "Invalid failure threshold. Enter a positive number from 1 to 100."
             update_thresholds
             return
+        
         fi
 
         sed -i "s/\"warning\": [0-9]*/\"warning\": $warning_threshold/" "$PROJECT_DIR/Helpers/config.json"
@@ -143,13 +156,30 @@ update_thresholds()
         sed -i "s/\"failure\": [0-9]*/\"failure\": $failure_threshold/" "$PROJECT_DIR/Helpers/config.json"
 
         echo "Thresholds updated."
+    
     fi
-}
-
 
 }
+
+## ERROR HANDILING MEASURES
+handle_interrupt()
+{
+    echo
+    echo "Deployment interrupted."
+
+    if [ -d "$PROJECT_DIR" ]
+    then
+        zip -r "${PROJECT_DIR}_archive.zip" "$PROJECT_DIR"
+        echo "Incomplete project archived as ${PROJECT_DIR}_archive.zip"
+    fi
+
+    exit 1
+}
+
 deploy()
 {
+    trap 'handle_interrupt' SIGINT SIGTSTP
+
     check_dependencies
     # Prompts the user to input a username and creates a directory with it
     read -r -p "Project name: " username
@@ -177,8 +207,11 @@ deploy()
     echo "Deployment complete."
     echo "Starting application..."
 
+    trap - SIGINT SIGTSTP
     (
         cd "$PROJECT_DIR"
+        echo "absent.log not found."
+    
         python3 attendance_checker.py
     )
 }
@@ -195,6 +228,7 @@ run_application()
     then
         echo "Project does not exist."
         return 1
+    
     fi
 
     cd "$PROJECT_DIR" || return 1
@@ -213,6 +247,7 @@ archive_logs()
     then
         echo "Project does not exist."
         return 1
+    
     fi
 
     timestamp=$(date +%Y%m%d_%H%M%S)
@@ -226,6 +261,7 @@ archive_logs()
         echo "Attendance log archived."
     else
         echo "attendance.log not found."
+    
     fi
 
     if [ -f "$PROJECT_DIR/reports/absent.log" ]
@@ -234,5 +270,40 @@ archive_logs()
         echo "Absent log archived."
     else
         echo "absent.log not found."
+    
     fi
 }
+
+
+## TIME TO RUN THE FINAL CODE
+main()
+{
+    echo "1. Deploy application"
+    echo "2. Run application"
+    echo "3. Archive logs"
+    echo "4. Exit"
+
+    read -r -p "Choose an option: " choice
+
+    if [ "$choice" = "1" ]
+    then
+        deploy
+    elif [ "$choice" = "2" ]
+    then
+        run_application
+    elif [ "$choice" = "3" ]
+    then
+        archive_logs
+    elif [ "$choice" = "4" ]
+    then
+        exit 0
+    else
+        echo "Invalid option. Please enter from 1 - 4"
+        main 
+        return
+    
+    fi
+
+}
+
+main
