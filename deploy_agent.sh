@@ -53,7 +53,19 @@ fi
 create_template_roster()
 {
     read -r -p "How many students? " student_count
-    echo "$student_count students"
+    if [[ ! "$student_count" =~ ^[1-9][0-9]*$ ]]
+        then
+            echo "Invalid input. Please enter a positive whole number."
+            create_template_roster
+            return
+    fi
+
+    if [ "$student_count" -gt 10 ]
+        then
+            echo "Too many students. Maximum is 10."
+            create_template_roster
+            return
+    fi
 
     head -n $((student_count + 1)) templates/assets.csv > "$PROJECT_DIR/Helpers/assets.csv"
     
