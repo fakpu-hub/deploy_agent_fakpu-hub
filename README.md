@@ -64,3 +64,4 @@ Deployed structure was checked with ls -R (or tree) against the expected layout,
 
 Demo Video Link: https://drive.google.com/file/d/1lKCM1rEOzx5CbhJcA19D3oOHBphou3qm/view?usp=drive_link
 
+NOTE: The repository contains test attempts and the information showed in the logs maybe affected and influenced by the previous test attempts.
