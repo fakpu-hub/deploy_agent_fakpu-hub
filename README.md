@@ -1,119 +1,66 @@
-# deploy_agent_fakpu-hub
-
 Student Attendance Tracker Deployment Agent
 
-Author: Felix Chifumnanya Akpu
-Repository: deploy_agent_fakpu-hub
-Environment: Ubuntu 26.04 LTS on WSL
+Author: Felix Chifumnanya Akpu · Repo: deploy_agent_fakpu-hub · Env: Ubuntu 26.04 LTS on WSL
 
-Project Overview
+Bash tool to deploy, run, and archive logs for the Student Attendance Tracker. Handles Ctrl+C/Ctrl+Z interruptions during deployment.
 
-deploy_agent.sh is a Bash deployment tool for the Student Attendance Tracker.
+Requires: Bash, Python 3, zip, Unix-like environment.
 
-It provides three features:
-
-Deploy application
-Run application
-Archive logs
-
-It also handles Ctrl+C and Ctrl+Z interruptions during deployment.
-
-Requirements
-Bash
-Python 3
-zip
-Ubuntu/WSL or another Unix-like environment
-Running the Script
+Run
+Use bash
 chmod u+x deploy_agent.sh
 ./deploy_agent.sh
 
-The menu provides:
+Enter a number to pick a feature:
 
 1. Deploy application
 2. Run application
 3. Archive logs
 4. Exit
 
-Each operation exits after completion.
+Each option exits after completing.
 
-Deployment
+Deploy (Option 1)
 
-The deployment creates:
+Creates:
 
 attendance_tracker_{name}/
 ├── attendance_checker.py
-├── Helpers/
-│   ├── assets.csv
-│   └── config.json
+├── Helpers/{assets.csv, config.json}
 └── reports/
 
-The user chooses between two roster options:
+Choose a roster:
 
-Option A: Template
+A. Copies a Template — 1–10 students from templates/assets.csv, total_sessions = 5
+B. Create a Fresh — 1–10 generated students, counts start at 0, total_sessions = 1
 
-Copies between 1 and 10 students from templates/assets.csv.
+Then set thresholds (defaults Warning 75 / Failure 50 — press Enter to keep, or enter 1–100).
 
-The template represents 4 previous sessions, so total_sessions is set to 5.
+Run (Option 2)
 
-Option B: Fresh Roster
+Enter the project name; runs python3 attendance_checker.py.
 
-Generates between 1 and 10 students using predefined student data.
+Archive Logs (Option 3)
 
-Attendance and absence counts start at 0, and total_sessions is set to 1.
-
-Thresholds
-
-The default thresholds are:
-
-Warning: 75
-Failure: 50
-
-Users can keep the defaults by pressing Enter or enter values from 1 to 100.
-
-Running the Application
-
-Select option 2 and enter the project name.
-
-The script runs:
-
-python3 attendance_checker.py
-Archiving Logs
-
-Option 3 archives existing logs into:
+Moves reports/ logs into timestamped copies under:
 
 archives/
 ├── attendance/
 └── absent/
 
-Files are given timestamps such as:
+e.g. attendance_20260930_103015.log. Originals stay in reports/; missing logs don't crash it.
 
-attendance_20260930_103015.log
+How Interrupt Handling
 
-Original logs remain in reports/.
+Ctrl+C (SIGINT) / Ctrl+Z (SIGTSTP) during deployment zip whatever's been created so far into attendance_tracker_{name}_archive.zip, then remove the incomplete directory.
 
-Missing logs are handled without crashing.
+To test: start a deployment, interrupt it mid-way with each signal, then confirm the loose directory is gone and the zip contains only the files created before the interrupt.
 
-Signal Handling
-
-During deployment:
-
-Ctrl+C triggers SIGINT
-Ctrl+Z triggers SIGTSTP
-
-If deployment is interrupted, the incomplete project is compressed into:
-
-attendance_tracker_{name}_archive.zip
 Testing
 
-The following were successfully tested:
+Verified manually: deployment (both roster types), threshold changes, running the app, log archiving + missing-log handling, Ctrl+C/Ctrl+Z interrupts, and zip creation.
 
-✅ Deployment
-✅ Template roster
-✅ Fresh roster
-✅ Threshold modification
-✅ Running the application
-✅ Log archiving
-✅ Missing log handling
-✅ Ctrl+C interruption
-✅ Ctrl+Z interruption
-✅ ZIP creation of incomplete deployments
+Deployed structure was checked with ls -R (or tree) against the expected layout, and config.json was inspected to confirm correct threshold/session values.
+
+Demo Video Link: https://drive.google.com/file/d/1lKCM1rEOzx5CbhJcA19D3oOHBphou3qm/view?usp=drive_link
+
